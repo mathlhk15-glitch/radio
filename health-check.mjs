@@ -2,6 +2,9 @@ import fs from "node:fs/promises";
 
 const ROOT = new URL("./", import.meta.url);
 const doc = JSON.parse(await fs.readFile(new URL("./stations.json", ROOT), "utf8"));
+const configText = await fs.readFile(new URL("./config.js", ROOT), "utf8");
+const workerMatch = configText.match(/workerBaseUrl\s*:\s*["']([^"']+)["']/);
+const WORKER_BASE_URL = (workerMatch?.[1] || "").replace(/\/$/, "");
 const results = [];
 
 function isPlaylistLike(contentType, text) {
@@ -16,12 +19,51 @@ async function checkOfficialPage(station) {
       method: "GET",
       redirect: "follow",
       signal: AbortSignal.timeout(12000),
-      headers: { "User-Agent": "kyu-radio-health-check/1.0" }
+      headers: { "User-Agent": "kyu-radio-health-check/1.1" }
     });
     if (r.status >= 400) return { status: "WARN", note: `official page HTTP ${r.status}` };
     return { status: "PASS", note: `official page HTTP ${r.status}` };
   } catch (error) {
     return { status: "WARN", note: `official page runner verification failed: ${error.message}` };
+  }
+}
+
+async function checkWorkerResolver(station) {
+  if (!WORKER_BASE_URL) {
+    return { id: station.id, name: station.name, status: "FAIL", note: "workerBaseUrl is not configured" };
+  }
+
+  try {
+    const endpoint = `${WORKER_BASE_URL}/resolve?station=${encodeURIComponent(station.id)}`;
+    const r = await fetch(endpoint, {
+      method: "GET",
+      redirect: "follow",
+      signal: AbortSignal.timeout(15000),
+      headers: { "User-Agent": "kyu-radio-health-check/1.1" }
+    });
+
+    if (!r.ok) {
+      return { id: station.id, name: station.name, status: "FAIL", note: `resolver HTTP ${r.status}` };
+    }
+
+    const payload = await r.json().catch(() => null);
+    if (!payload?.url || !/^https:\/\//i.test(payload.url)) {
+      return { id: station.id, name: station.name, status: "FAIL", note: "resolver returned no valid HTTPS stream URL" };
+    }
+
+    return {
+      id: station.id,
+      name: station.name,
+      status: "PASS",
+      note: "resolver returned a valid HTTPS stream URL"
+    };
+  } catch (error) {
+    return {
+      id: station.id,
+      name: station.name,
+      status: "WARN",
+      note: `runner could not verify resolver (geo/WAF/network possible): ${error.message}`
+    };
   }
 }
 
@@ -37,13 +79,7 @@ async function check(station) {
   }
 
   if (station.playbackMode === "worker-resolver") {
-    const official = await checkOfficialPage(station);
-    return {
-      id: station.id,
-      name: station.name,
-      status: "WARN",
-      note: `dynamic resolver: manual/browser verification required; ${official.note}`
-    };
+    return checkWorkerResolver(station);
   }
 
   if (!station.streamUrl) {
@@ -55,13 +91,11 @@ async function check(station) {
       method: "GET",
       redirect: "follow",
       signal: AbortSignal.timeout(12000),
-      headers: { "User-Agent": "kyu-radio-health-check/1.0" }
+      headers: { "User-Agent": "kyu-radio-health-check/1.1" }
     });
 
     const ct = r.headers.get("content-type") || "";
 
-    // 명확한 HTTP 오류는 실제 설정/엔드포인트 문제일 가능성이 높으므로 FAIL.
-    // 반면 fetch 자체 실패는 러너의 지역/망/WAF 차단일 수 있어 catch에서 WARN 처리.
     if (!r.ok) {
       return {
         id: station.id,
@@ -122,7 +156,11 @@ const report = [
 ].join("\n");
 
 await fs.writeFile(new URL("./health-report.md", ROOT), report, "utf8");
-await fs.writeFile(new URL("./health-report.json", ROOT), JSON.stringify({ generatedAt: new Date().toISOString(), counts, results }, null, 2), "utf8");
+await fs.writeFile(
+  new URL("./health-report.json", ROOT),
+  JSON.stringify({ generatedAt: new Date().toISOString(), counts, results }, null, 2),
+  "utf8"
+);
 
 const hardFailures = results.filter((x) => x.status === "FAIL");
 if (hardFailures.length) {

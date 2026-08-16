@@ -1,5 +1,5 @@
-const SHELL_CACHE = "kyu-radio-shell-v3";
-const DATA_CACHE = "kyu-radio-data-v3";
+const SHELL_CACHE = "kyu-radio-shell-v4";
+const DATA_CACHE = "kyu-radio-data-v4";
 const SHELL = [
   "./",
   "./index.html",
@@ -36,7 +36,7 @@ self.addEventListener("fetch", (event) => {
 
   if (
     /\.m3u8($|\?)/i.test(url.pathname + url.search) ||
-    /\.(ts|m4s|aac)($|\?)/i.test(url.pathname + url.search) ||
+    /\.(ts|m4s|aac|mp3)($|\?)/i.test(url.pathname + url.search) ||
     url.pathname.includes("/resolve")
   ) return;
 
