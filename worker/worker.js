@@ -1,37 +1,17 @@
 const DEFAULT_ALLOWED_ORIGIN = "https://mathlhk15-glitch.github.io";
 
 const STATIONS = {
-  "kbs-1": { type: "kbs", code: "21" },
-  "kbs-2": { type: "kbs", code: "22" },
-  "kbs-3": { type: "kbs", code: "23" },
-  "kbs-1fm": { type: "kbs", code: "24" },
-  "kbs-2fm": { type: "kbs", code: "25" },
-  "kbs-hanminjok": { type: "kbs", code: "26" },
-
-  "mbc-sfm": {
-    type: "endpoint",
-    url: "https://sminiplay.imbc.com/aacplay.ashx?agent=webapp&channel=sfm"
+  "kbs-1": {
+    type: "kbs",
+    code: "21"
   },
   "mbc-fm4u": {
     type: "endpoint",
     url: "https://sminiplay.imbc.com/aacplay.ashx?agent=webapp&channel=mfm"
   },
-  "mbc-allthat": {
-    type: "endpoint",
-    url: "https://sminiplay.imbc.com/aacplay.ashx?agent=webapp&channel=chm"
-  },
-
-  "sbs-love": {
-    type: "endpoint",
-    url: "https://apis.sbs.co.kr/play-api/1.0/livestream/lovepc/lovefm?protocol=hls&ssl=Y"
-  },
   "sbs-power": {
     type: "endpoint",
     url: "https://apis.sbs.co.kr/play-api/1.0/livestream/powerpc/powerfm?protocol=hls&ssl=Y"
-  },
-  "sbs-gorilla-m": {
-    type: "endpoint",
-    url: "https://apis.sbs.co.kr/play-api/1.0/livestream/sbsdmbpc/sbsdmb?protocol=hls&ssl=Y"
   }
 };
 
@@ -72,7 +52,9 @@ function normalizeHttpsUrl(value) {
 
 function collectServiceUrls(value, out = [], context = {}) {
   if (Array.isArray(value)) {
-    for (const item of value) collectServiceUrls(item, out, context);
+    for (const item of value) {
+      collectServiceUrls(item, out, context);
+    }
     return out;
   }
 
@@ -131,19 +113,29 @@ function extractStreamUrlFromPayload(text, contentType = "") {
         candidates.push(item.url);
       }
 
-      const scan = JSON.stringify(parsed).match(/https:\/\/[^"\\\s<>]+/g) || [];
-      candidates.push(...scan.map(normalizeHttpsUrl).filter(Boolean));
+      const scan =
+        JSON.stringify(parsed).match(/https:\/\/[^"\\\s<>]+/g) || [];
+
+      candidates.push(
+        ...scan.map(normalizeHttpsUrl).filter(Boolean)
+      );
     } catch {}
   }
 
   const regexMatches =
     trimmed.replaceAll("\\/", "/").match(/https:\/\/[^\s"'<>]+/gi) || [];
 
-  candidates.push(...regexMatches.map(normalizeHttpsUrl).filter(Boolean));
+  candidates.push(
+    ...regexMatches.map(normalizeHttpsUrl).filter(Boolean)
+  );
 
   const unique = [...new Set(candidates)];
 
-  return unique.find((u) => /\.m3u8($|\?)/i.test(u)) || unique[0] || null;
+  return (
+    unique.find((u) => /\.m3u8($|\?)/i.test(u)) ||
+    unique[0] ||
+    null
+  );
 }
 
 async function resolveKbs(code) {
@@ -206,7 +198,8 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const origin = request.headers.get("Origin") || "";
-    const allowedOrigin = env.ALLOWED_ORIGIN || DEFAULT_ALLOWED_ORIGIN;
+    const allowedOrigin =
+      env.ALLOWED_ORIGIN || DEFAULT_ALLOWED_ORIGIN;
 
     if (request.method === "OPTIONS") {
       const headers = corsHeaders(origin, allowedOrigin);
@@ -303,8 +296,7 @@ export default {
 
       return json(
         {
-          error: "resolver_failed",
-          detail: String(error?.message || error)
+          error: "resolver_failed"
         },
         502,
         origin,
