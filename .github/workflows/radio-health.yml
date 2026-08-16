@@ -22,7 +22,7 @@ jobs:
       - name: Check station endpoints
         id: health
         continue-on-error: true
-        run: node radio/health-check.mjs
+        run: node health-check.mjs
 
       - name: Upload health report
         if: always()
@@ -30,8 +30,8 @@ jobs:
         with:
           name: radio-health-report
           path: |
-            radio/health-report.md
-            radio/health-report.json
+            health-report.md
+            health-report.json
           if-no-files-found: warn
 
       - name: Create or update alert issue
@@ -41,8 +41,8 @@ jobs:
           script: |
             const fs = require('fs');
             const title = '[뀨 RADIO] 방송 상태 점검 실패';
-            const body = fs.existsSync('radio/health-report.md')
-              ? fs.readFileSync('radio/health-report.md', 'utf8')
+            const body = fs.existsSync('health-report.md')
+              ? fs.readFileSync('health-report.md', 'utf8')
               : '상태 점검이 실패했지만 보고서 파일을 읽지 못했습니다.';
 
             const { data: issues } = await github.rest.issues.listForRepo({
@@ -68,7 +68,6 @@ jobs:
                 body,
                 labels: ['radio-health']
               }).catch(async (error) => {
-                // label이 아직 없으면 라벨 없이 Issue를 생성합니다.
                 if (error.status === 422) {
                   await github.rest.issues.create({
                     owner: context.repo.owner,
