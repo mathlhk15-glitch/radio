@@ -1,1 +1,87 @@
+name: Radio health check
 
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "20 21 * * 0"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Check station endpoints
+        id: health
+        continue-on-error: true
+        run: node radio/health-check.mjs
+
+      - name: Upload health report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: radio-health-report
+          path: |
+            radio/health-report.md
+            radio/health-report.json
+          if-no-files-found: warn
+
+      - name: Create or update alert issue
+        if: steps.health.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const title = '[뀨 RADIO] 방송 상태 점검 실패';
+            const body = fs.existsSync('radio/health-report.md')
+              ? fs.readFileSync('radio/health-report.md', 'utf8')
+              : '상태 점검이 실패했지만 보고서 파일을 읽지 못했습니다.';
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+
+            const existing = issues.find(issue => issue.title === title);
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['radio-health']
+              }).catch(async (error) => {
+                // label이 아직 없으면 라벨 없이 Issue를 생성합니다.
+                if (error.status === 422) {
+                  await github.rest.issues.create({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    title,
+                    body
+                  });
+                } else {
+                  throw error;
+                }
+              });
+            }
+
+      - name: Fail workflow on hard failures
+        if: steps.health.outcome == 'failure'
+        run: exit 1
