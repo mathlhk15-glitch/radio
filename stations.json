@@ -180,6 +180,42 @@
       "streamUrl": "https://mgugaklive.nowcdn.co.kr/gugakradio/gugakradio.stream/playlist.m3u8",
       "officialPage": "https://www.gugakfm.co.kr/",
       "sortOrder": 14
+    },
+    {
+      "id": "kbs-1fm",
+      "name": "KBS 1FM",
+      "region": "national",
+      "regionLabel": "전국",
+      "category": "클래식·국악",
+      "provider": "KBS",
+      "playbackMode": "worker-resolver",
+      "mediaEngine": "auto",
+      "officialPage": "https://radio.kbs.co.kr/",
+      "sortOrder": 15
+    },
+    {
+      "id": "kbs-2fm",
+      "name": "KBS 2FM",
+      "region": "national",
+      "regionLabel": "전국",
+      "category": "대중음악",
+      "provider": "KBS",
+      "playbackMode": "worker-resolver",
+      "mediaEngine": "auto",
+      "officialPage": "https://radio.kbs.co.kr/",
+      "sortOrder": 16
+    },
+    {
+      "id": "mbc-allthat",
+      "name": "MBC mini 올댓뮤직",
+      "region": "national",
+      "regionLabel": "인터넷",
+      "category": "음악전용",
+      "provider": "MBC",
+      "playbackMode": "worker-resolver",
+      "mediaEngine": "auto",
+      "officialPage": "https://mini.imbc.com/",
+      "sortOrder": 17
     }
   ]
 }
