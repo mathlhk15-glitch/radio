@@ -2,9 +2,16 @@ const DEFAULT_ALLOWED_ORIGIN = "https://mathlhk15-glitch.github.io";
 
 const STATIONS = {
   "kbs-1": { type: "kbs", code: "21" },
+  "kbs-2": { type: "kbs", code: "22" },
+  "kbs-3": { type: "kbs", code: "23" },
   "kbs-1fm": { type: "kbs", code: "24" },
   "kbs-2fm": { type: "kbs", code: "25" },
+  "kbs-hanminjok": { type: "kbs", code: "26" },
 
+  "mbc-sfm": {
+    type: "endpoint",
+    url: "https://sminiplay.imbc.com/aacplay.ashx?agent=webapp&channel=sfm"
+  },
   "mbc-fm4u": {
     type: "endpoint",
     url: "https://sminiplay.imbc.com/aacplay.ashx?agent=webapp&channel=mfm"
@@ -14,9 +21,17 @@ const STATIONS = {
     url: "https://sminiplay.imbc.com/aacplay.ashx?agent=webapp&channel=chm"
   },
 
+  "sbs-love": {
+    type: "endpoint",
+    url: "https://apis.sbs.co.kr/play-api/1.0/livestream/lovepc/lovefm?protocol=hls&ssl=Y"
+  },
   "sbs-power": {
     type: "endpoint",
     url: "https://apis.sbs.co.kr/play-api/1.0/livestream/powerpc/powerfm?protocol=hls&ssl=Y"
+  },
+  "sbs-gorilla-m": {
+    type: "endpoint",
+    url: "https://apis.sbs.co.kr/play-api/1.0/livestream/sbsdmbpc/sbsdmb?protocol=hls&ssl=Y"
   }
 };
 
@@ -114,9 +129,7 @@ function extractStreamUrlFromPayload(text, contentType = "") {
         candidates.push(item.url);
       }
 
-      const scan =
-        JSON.stringify(parsed).match(/https:\/\/[^"\\\s<>]+/g) || [];
-
+      const scan = JSON.stringify(parsed).match(/https:\/\/[^"\\\s<>]+/g) || [];
       candidates.push(...scan.map(normalizeHttpsUrl).filter(Boolean));
     } catch {}
   }
@@ -155,12 +168,15 @@ async function resolveKbs(code) {
     candidates[0];
 
   if (!preferred?.url) throw new Error("KBS_URL_NOT_FOUND");
+
   return preferred.url;
 }
 
 async function resolveEndpoint(endpoint) {
   const response = await fetch(endpoint, {
-    headers: { "Accept": "application/json,text/plain,*/*" }
+    headers: {
+      "Accept": "application/json,text/plain,*/*"
+    }
   });
 
   if (!response.ok) throw new Error(`UPSTREAM_${response.status}`);
@@ -170,6 +186,7 @@ async function resolveEndpoint(endpoint) {
   const url = extractStreamUrlFromPayload(text, contentType);
 
   if (!url) throw new Error("STREAM_URL_NOT_FOUND");
+
   return url;
 }
 
@@ -234,7 +251,10 @@ export default {
       }
 
       return json(
-        { url: streamUrl, resolvedAt: new Date().toISOString() },
+        {
+          url: streamUrl,
+          resolvedAt: new Date().toISOString()
+        },
         200,
         origin,
         allowedOrigin
