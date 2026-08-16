@@ -1,0 +1,30 @@
+{
+  "name": "뀨 RADIO",
+  "short_name": "뀨 RADIO",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#080b12",
+  "theme_color": "#111827",
+  "description": "창원·경남과 전국 주요 방송을 듣는 개인용 무료 웹 라디오",
+  "icons": [
+    {
+      "src": "./icons/radio-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/radio-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/radio.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

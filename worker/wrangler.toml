@@ -1,0 +1,6 @@
+name = "kyu-radio-resolver"
+main = "worker.js"
+compatibility_date = "2026-08-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://mathlhk15-glitch.github.io"

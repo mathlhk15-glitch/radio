@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <meta name="description" content="개인용 무료 웹 라디오 플레이어">
+  <title>뀨 RADIO</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/radio.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/radio-192.png">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.13/dist/hls.min.js" defer></script>
+  <script src="./config.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">PERSONAL WEB RADIO</p>
+        <h1>뀨 RADIO</h1>
+      </div>
+      <button id="themeButton" class="icon-button" type="button" aria-label="테마 전환">◐</button>
+    </header>
+
+    <section class="now-playing card" aria-live="polite">
+      <div class="station-art" id="stationArt">RADIO</div>
+      <div class="now-copy">
+        <span id="liveBadge" class="badge">대기</span>
+        <h2 id="nowTitle">방송국을 선택하세요</h2>
+        <p id="nowSubtitle">창원·경남과 전국 주요 라디오를 한 곳에서 듣습니다.</p>
+      </div>
+      <div class="player-actions">
+        <button id="playButton" class="primary-button" type="button" disabled>▶ 재생</button>
+        <button id="retryButton" class="secondary-button hidden" type="button">다시 연결</button>
+        <a id="officialButton" class="secondary-button hidden" href="#" target="_blank" rel="noopener noreferrer">공식 방송 ↗</a>
+      </div>
+      <div class="volume-row">
+        <span aria-hidden="true">🔈</span>
+        <input id="volume" aria-label="볼륨" type="range" min="0" max="1" step="0.01" value="0.8">
+        <span aria-hidden="true">🔊</span>
+      </div>
+      <p id="statusText" class="status">방송국을 선택하면 재생 준비를 합니다.</p>
+      <audio id="radioPlayer" preload="none" playsinline></audio>
+    </section>
+
+    <section class="toolbar card">
+      <div class="tabs" role="tablist" aria-label="방송 지역 필터">
+        <button class="tab active" data-filter="all" type="button">전체</button>
+        <button class="tab" data-filter="local" type="button">창원·경남</button>
+        <button class="tab" data-filter="national" type="button">전국</button>
+        <button class="tab" data-filter="favorite" type="button">즐겨찾기</button>
+      </div>
+      <input id="searchInput" class="search" type="search" placeholder="방송국 검색" autocomplete="off">
+    </section>
+
+    <section>
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">STATIONS</p>
+          <h2>방송국</h2>
+        </div>
+        <span id="stationCount" class="muted"></span>
+      </div>
+      <div id="stationGrid" class="station-grid"></div>
+    </section>
+
+    <footer>
+      <p>오디오는 각 방송사 서버에서 직접 재생하며, 동적 채널은 필요한 경우 URL resolver만 사용합니다.</p>
+      <p>연결이 안 되면 각 방송사의 공식 온에어 페이지를 이용할 수 있습니다.</p>
+    </footer>
+  </main>
+</body>
+</html>
